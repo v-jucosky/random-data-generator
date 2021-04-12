@@ -1,0 +1,46 @@
+{
+    "empresas": {
+        "index_fields": [
+            "cnpj"
+        ],
+        "data_fields": [
+            "empresa",
+            "endereco",
+            "cep",
+            "dt_carga"
+        ]
+    },
+    "funcionarios": {
+        "index_fields": [
+            "cpf"
+        ],
+        "data_fields": [
+            "nome",
+            "sexo",
+            "email",
+            "endereco",
+            "cep",
+            "dt_nascimento",
+            "dt_carga"
+        ],
+        "foreign_table": "empresas"
+    },
+    "clientes": {
+        "data_fields": [
+            "nome",
+            "sexo",
+            "email",
+            "dt_carga"
+        ],
+        "foreign_table": "empresas"
+    },
+    "hierarquias": {
+        "index_fields": [
+            "cnpj"
+        ],
+        "data_fields": [
+            "dt_carga"
+        ],
+        "foreign_table": "hierarquias"
+    }
+}

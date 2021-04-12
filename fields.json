@@ -1,0 +1,33 @@
+{
+    "cpf": {
+        "type": "brazil_provider.cpf"
+    },
+    "cnpj": {
+        "type": "brazil_provider.cnpj"
+    },
+    "empresa": {
+        "type": "business.company"
+    },
+    "nome": {
+        "type": "person.full_name"
+    },
+    "sexo": {
+        "type": "random.generate_string",
+        "params": ["MF", 1]
+    },
+    "email": {
+        "type": "person.email"
+    },
+    "endereco": {
+        "type": "address.address"
+    },
+    "cep": {
+        "type": "address.postal_code"
+    },
+    "dt_nascimento": {
+        "type": "datetime.datetime"
+    },
+    "dt_carga": {
+        "type": "datetime.datetime"
+    }
+}
