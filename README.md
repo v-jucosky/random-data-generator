@@ -43,14 +43,14 @@ Ou utilize em seu projeto:
 from worker import Worker
 
 estrutura = {
-    "tabela": {
-        "index_fields": [
-            "cpf"
+    'tabela': {
+        'index_fields': [
+            'cpf'
         ],
-        "data_fields": [
-            "nome"
-            "endereco",
-            "dt_carga"
+        'data_fields': [
+            'nome'
+            'endereco',
+            'dt_carga'
         ]
     }
 }

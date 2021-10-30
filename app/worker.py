@@ -24,18 +24,18 @@ class Worker(Process):
 
         Parâmetros
         ----------
-        structure: estrutura das tabelas.
-        table: nome da tabela a ser gerada.
-        limit: tamanho do dataset a ser gerado, em linhas.
-        chunk_size: tamanho dos blocos de dados a serem gerados.
+        structure: estrutura das tabelas
+        table: nome da tabela a ser gerada
+        limit: tamanho do dataset a ser gerado, em linhas
+        chunk_size: tamanho dos blocos de dados a serem gerados
 
         Constantes
         ----------
         MAX_INDEX_RETRIES: limite de iterações na criação das chaves primárias (previne
             a execução do código caso não sejam gerados registros únicos suficientes
-            para satisfazer o índice no tamanho indicado).
+            para satisfazer o índice no tamanho indicado)
         TREE_ROOT_PROPORTION: proporção de registros raíz ao criar estruturas de árvore
-            (onde a chave estrangeira aponta para ua chave primária na mesma tabela).
+            (onde a chave estrangeira aponta para ua chave primária na mesma tabela)
         '''
 
         super().__init__()
@@ -71,7 +71,7 @@ class Worker(Process):
             self._foreign_fields = structure[foreign_table]['index_fields']
 
             if not self._foreign_fields:
-                raise ValueError('Tabela estrangeira fornecida não possui chave primária')
+                raise ValueError('Foreign table does not have primary keys')
 
         try:
             self._data_fields = structure[table]['data_fields']
@@ -82,29 +82,29 @@ class Worker(Process):
         self._foreign_dataframe = pandas.DataFrame(columns=self._foreign_fields)
         self._data_dataframe = pandas.DataFrame(columns=self._data_fields)
 
-        with open('./fields.json', mode='r') as json_file:
+        with open('./fields.json', mode='r', encoding='UTF-8') as json_file:
             fields_configuration = json.load(json_file)
 
             for field in set(self._index_fields + self._foreign_fields + self._data_fields):
-                m_class, m_func = fields_configuration[field]['type'].split('.')
+                m_class, m_function = fields_configuration[field]['type'].split('.')
 
                 generator = getattr(
                     getattr(self._provider, m_class),
-                    m_func
+                    m_function
                 )
 
                 try:
-                    params = fields_configuration[field]['params']
+                    parameters = fields_configuration[field]['params']
                 except KeyError:
-                    params = ()
+                    parameters = ()
 
-                self._generators[field] = (generator, params)
+                self._generators[field] = (generator, parameters)
 
     def run(self):
         '''Rotina de execução principal, chamada ao iniciar o processo.'''
 
         if self._index_fields:
-            self._logger.info('iniciando criação das chaves primárias')
+            self._logger.info('building primary keys')
 
             index_retries = 0
 
@@ -121,12 +121,12 @@ class Worker(Process):
                 if index_retries == MAX_INDEX_RETRIES:
                     self._limit = self._remaining = len(self._index_dataframe.index)
 
-                    self._logger.warning('dataset será limitado a {0} registros por limitações das chaves primárias'.format(self._limit))
+                    self._logger.warning(f'dataset will be limit to {self._limit} records due to primary key collision')
 
                     break
 
         if self._foreign_fields:
-            self._logger.info('carregando chaves estrangeiras')
+            self._logger.info('loading foreign keys')
 
             if self._foreign_file:
                 self._foreign_dataframe = pandas.read_csv(self._foreign_file, ';', header=0, usecols=self._foreign_fields, encoding='UTF-8')
@@ -135,12 +135,10 @@ class Worker(Process):
 
                 self._foreign_dataframe = pandas.concat([
                     self._foreign_dataframe,
-                    pandas.DataFrame(
-                        [None for i in range(len(self._index_dataframe.index) - len(self._foreign_dataframe.index))], columns=self._foreign_fields
-                    )], ignore_index=True
+                    pandas.DataFrame([None for _ in range(len(self._index_dataframe.index) - len(self._foreign_dataframe.index))], columns=self._foreign_fields)], ignore_index=True
                 )
 
-        self._logger.info('iniciando criação dos dados')
+        self._logger.info('generating data')
 
         while self._remaining > 0:
             subset = self._generate(self._data_fields, self._chunk_size)
@@ -160,21 +158,19 @@ class Worker(Process):
 
             self._save_chunk()
 
-        self._logger.info('criação do arquivo "{0}" concluída'.format(self._file.name))
+        self._logger.info(f'{self._file.name} completed')
 
-    def _generate(self, fields: list, size: int) -> pandas.DataFrame:
+    def _generate(self, fields: list, size: int):
         '''
         Gera um dataframe a partir dos campos fornecidos.
 
         Parâmetros
         ----------
-        fields: lista de colunas a gerar.
-        size: tamanho do dataframe.
+        fields: lista de colunas a gerar
+        size: tamanho do dataframe
         '''
 
-        return pandas.DataFrame(
-            [{field: self._generators[field][0](*self._generators[field][1]) for field in fields} for i in range(size)]
-        )
+        return pandas.DataFrame([{field: self._generators[field][0](*self._generators[field][1]) for field in fields} for _ in range(size)])
 
     def _save_chunk(self):
         '''Une os índices, chaves externas e dados gerados e os salva no arquivo de destino.'''
