@@ -42,8 +42,8 @@ Ou utilize em seu projeto:
 ```python
 from worker import Worker
 
-estrutura = {
-    'tabela': {
+structure = {
+    'my_table': {
         'index_fields': [
             'cpf'
         ],
@@ -55,5 +55,8 @@ estrutura = {
     }
 }
 
-w = Worker(estrutura, 'tabela', 1000)
+w = Worker(structure, 'my_table', 1000)
+
+w.start()
+w.join()
 ```
